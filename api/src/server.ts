@@ -4,7 +4,6 @@ import { createConnection, getConnection, getRepository } from "typeorm";
 import { User } from "./entity/User";
 import { Digimon } from "./entity/Digimon";
 import "reflect-metadata";
-import { Namespace } from 'protobufjs';
 
 const typeDefs = gql`
     type Query {
@@ -52,10 +51,10 @@ const resolvers = {
         },
 
     Mutation: {
-        AddDigimon: async (name: string, type: string): Promise<IDigmon> => {
+        AddDigimon: async (_: {}, args: {name: string, type: string}): Promise<IDigmon> => {
             const digimon = {
-                name,
-                type
+                name: args.name,
+                type: args.type
             }
 
             let digirepo = await getRepository(Digimon);
