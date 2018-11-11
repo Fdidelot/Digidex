@@ -52,7 +52,7 @@ const typeDefs = gql`
     }
 
     input RemoveDigimonInput {
-        id: Int
+        id: Int!
     }
 
     input UpdateDigimonInput {
