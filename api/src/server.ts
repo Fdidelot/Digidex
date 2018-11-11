@@ -4,6 +4,7 @@ import { createConnection, getConnection, getRepository } from "typeorm";
 import { User } from "./entity/User";
 import { Digimon } from "./entity/Digimon";
 import "reflect-metadata";
+import bodyParser = require('body-parser');
 
 //Schema graphql
 const typeDefs = gql`
@@ -193,12 +194,14 @@ const resolvers = {
     Mutation: {
         CreateDigimon: async (_: {}, { input }: CreateDigimonInput): Promise<IDigmon> => {
 
+            console.log("creation")
             const digimon = new Digimon();
             digimon.name = input.name;
             digimon.type = input.type;
 
             let digirepo = await getRepository(Digimon);
             await digirepo.save(digimon);
+            console.log(digimon);
 
             return digimon;
         },
@@ -289,7 +292,7 @@ const resolvers = {
 export class App {
 
     public server: ApolloServer;
-    public app: any;
+    public app;
 
     constructor() {
         this.server = new ApolloServer({
@@ -297,6 +300,7 @@ export class App {
             resolvers
         });
         this.app = express();
+        this.app.use(bodyParser.json());
         this.server.applyMiddleware({ app: this.app });
         this.connectToDb();
     }
@@ -324,7 +328,6 @@ export class App {
             );
         }
         const connection = await getConnection();
-
         console.log('Connected to Db');
     }
 }

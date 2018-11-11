@@ -15,8 +15,8 @@ class App extends React.PureComponent<{}, IState> {
     super({});
 
     this.state = {
-       name: "",
-       type: ""
+      name: "",
+      type: ""
     }
 
     this.UpdateName = this.UpdateName.bind(this);
@@ -37,6 +37,7 @@ class App extends React.PureComponent<{}, IState> {
 
     console.log("YO")
     const data = await fetch('http://localhost:3001/graphql', {
+      method: "POST",
       body: `
       mutation {
         addDigimon(input: {
@@ -49,7 +50,6 @@ class App extends React.PureComponent<{}, IState> {
         }
       }
       `,
-      method: "POST"
     })
     const res = await data.json();
     console.log(res);
@@ -73,7 +73,7 @@ class App extends React.PureComponent<{}, IState> {
         </p>
         <input placeholder="exemple : Agumon" onChange={(event) => this.UpdateName(event)} />
         <input placeholder="exemple : Virus" onChange={(event) => this.UpdateType(event)} />
-        <br/>
+        <br />
         <button type="submit" onClick={() => this.create()}>Valider</button>
       </div>
     );
