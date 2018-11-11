@@ -10,7 +10,13 @@ export class Digimon extends BaseEntity {
     @Column()
     public name: string;
 
-    @Column()
+    @Column({
+        enum: [
+            "VIRUS",
+            "ANTIVIRUS",
+            "DONNEES"
+        ]
+    })
     public type: string;
 
     @ManyToOne(type => User, user => user.digimons)

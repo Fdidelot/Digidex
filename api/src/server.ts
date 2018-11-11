@@ -5,23 +5,24 @@ import { User } from "./entity/User";
 import { Digimon } from "./entity/Digimon";
 import "reflect-metadata";
 
+//Schema graphql
 const typeDefs = gql`
     type Query {
         DigimonInfo(id: Int!): Digimon!
         UserInfo(id: Int!): Digimon!
-        GetDigimon(id: Int!): [Digimon!]!
+        GetDigimons(id: Int!): [Digimon!]!
     }
 
     type Mutation {
-        CreateDigimon(): Digimon!
-        UpdateDigimon(): Digimon!
-        RemoveDigimon(): Digimon!
+        CreateDigimon(input: CreateDigimonInput!): Digimon!
+        UpdateDigimon(input: UpdateDigimonInput!): Digimon!
+        RemoveDigimon(input: RemoveDigimonInput!): Digimon!
 
-        CreateUser(): User!
-        UpdateUser(): User!
-        RemoveUser(): User!
+        CreateUser(input: CreateUserInput!): User!
+        UpdateUser(input: UpdateUserInput!): User!
+        RemoveUser(input: RemoveUserInput!): User!
 
-        CatchDigimon(): Digimon!
+        CatchDigimon(input: CatchDigimonInput): Digimon!
     }
 
     type User {
@@ -32,19 +33,117 @@ const typeDefs = gql`
         digmons: [Digimon!]!
     }
 
+    enum DigiType {
+        VIRUS
+        ANTIVIRUS
+        DONNEES
+    }
+
     type Digimon {
         id: Int!
         name: String!
         type: String!
         owner: User
     }
+
+    input CreateDigimonInput {
+        name: String!
+        type: String!
+    }
+
+    input RemoveDigimonInput {
+        id: Int!
+    }
+
+    input UpdateDigimonInput {
+        id: Int!
+        name: String
+        type: DigiType
+        ownerid: Int
+    }
+
+    input CatchDigimonInput {
+        userId: Int!
+        digimonId: Int!
+    }
+
+    input CreateUserInput {
+        id: Int!
+        firstName: String!
+        lastName: String!
+        age: Int!
+    }
+
+    input RemoveUserInput {
+        id: Int!
+    }
+
+    input UpdateUserInput {
+        id: Int!
+        firstName: String!
+        lastName: String!
+        age: Int!
+    }
+
 `;
 
-/*input CreateDigimonInput {
-    name: string;
-    type: string;
-}*/
+//Digimon Inputs
+interface CreateDigimonInput {
+    input: {
+        name: string;
+        type: string;
+    }
+}
 
+interface RemoveDigimonInput {
+    input: {
+        id: number;
+    }
+}
+
+interface UpdateDigimonInput {
+    input: {
+        id: number;
+        name: string;
+        type: string;
+        owner: User;
+    }
+}
+
+//User Inputs
+interface CreateUserInput {
+    input: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        age: number;
+    }
+}
+
+interface RemoveUserInput {
+    input: {
+        id: number;
+    }
+}
+
+interface UpdateUserInput {
+    input: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        age: number;
+    }
+}
+
+interface CatchDigimonInput {
+    input: {
+        userId: number;
+        digimonId: number;
+    }
+
+}
+
+//Interfaces for functions
 interface IDigmon {
     name: string;
     type: string;
@@ -58,45 +157,45 @@ interface IUser {
 const resolvers = {
     Query: {
         DigimonInfo: async (id: number): Promise<Digimon> => {
-            
-             try { 
+
+            try {
                 let digirepo = await getRepository(Digimon);
                 return digirepo.findOne(id);
-                } catch (error) {
-                    throw new Error (
-                        `Error during DigimonInfo Query:\n ${error}`
-                    );
-                }
+            } catch (error) {
+                throw new Error(
+                    `Error during DigimonInfo Query:\n ${error}`
+                );
+            }
         },
         UserInfo: async (id: number): Promise<User> => {
-            
-            try { 
+
+            try {
                 let UserRepo = await getRepository(User);
                 return UserRepo.findOne(id);
-                } catch (error) {
-                    throw new Error (
-                        `Error during UserInfo Query:\n ${error}`
-                    );
-                }
+            } catch (error) {
+                throw new Error(
+                    `Error during UserInfo Query:\n ${error}`
+                );
+            }
         },
-        GetDigimon: async (id: number): Promise<Digimon[]> => {
+        GetDigimons: async (id: number): Promise<Digimon[]> => {
 
-            let UserRep = await getRepository(User);
-            let user = await UserRep.findOne(id);
-            
+            let userRep = await getRepository(User);
+            let user = await userRep.findOne({ where: { id: id }, relations: ["digimons"] });
+
+            if (!user.digimons) {
+                return [];
+            }
             return user.digimons;
         }
     },
 
     Mutation: {
-//        CreateDigimon: async (_: {}, CreateDigimonInput): Promise<IDigmon> => {
-//      
-        CreateDigimon: async (_: {}, args: {name: string, type: string}): Promise<IDigmon> => {
-            
-            const digimon = {
-                name: args.name,
-                type: args.type
-            }
+        CreateDigimon: async (_: {}, { input }: CreateDigimonInput): Promise<IDigmon> => {
+
+            const digimon = new Digimon();
+            digimon.name = input.name;
+            digimon.type = input.type;
 
             let digirepo = await getRepository(Digimon);
             await digirepo.save(digimon);
@@ -104,35 +203,44 @@ const resolvers = {
             return digimon;
         },
 
-        UpdateDigimon: async (_: {}, args: {id: number}): Promise<Digimon> => {
-            
+        UpdateDigimon: async (_: {}, { input }: UpdateDigimonInput): Promise<Digimon> => {
+
+            const { id, ...values } = input;
             try {
-                let digirepo = await getRepository(Digimon);
-                let digiToUpdate = await digirepo.findOne(args.id);
-                // Update things
+                const digirepo = await getRepository(Digimon);
+                const digiToUpdate = await digirepo.findOne(id);
+
+                if (!digiToUpdate) {
+                    throw new Error(
+                        'Digimon you want to update does not exist.'
+                    );
+                }
+                Object.assign(digiToUpdate, values)
+                await digirepo.save(digiToUpdate);
+
                 return digiToUpdate;
             } catch (error) {
-                throw new Error (
+                throw new Error(
                     `Error when updating Digimon:\n ${error}`
                 );
             }
 
         },
 
-        RemoveDigimon: async (_: {}, args: {id: number}): Promise<Digimon> => {
+        RemoveDigimon: async (_: {}, { input }: RemoveDigimonInput): Promise<Digimon> => {
 
             let digirepo = await getRepository(Digimon);
-            let digiToRemove = await digirepo.findOne(args.id);
+            let digiToRemove = await digirepo.findOne(input.id);
             await digirepo.remove(digiToRemove);
 
             return digiToRemove;
         },
 
-        CreateUser: async (_: {}, args: {id: number, firstName: string}): Promise<IUser> => {
-            
+        CreateUser: async (_: {}, { input }: CreateUserInput): Promise<IUser> => {
+
             const user = {
-                id: args.id,
-                firstName: args.firstName,
+                id: input.id,
+                firstName: input.firstName,
             }
 
             let UserRepo = await getRepository(User);
@@ -141,36 +249,36 @@ const resolvers = {
             return user;
         },
 
-        UpdateUser: async (_: {}, args: {id: number}): Promise<User> => {
-            
+        UpdateUser: async (_: {}, { input }: UpdateUserInput): Promise<User> => {
+
             try {
                 let UserRepo = await getRepository(User);
-                let UserToUpdate = await UserRepo.findOne(args.id);
+                let UserToUpdate = await UserRepo.findOne(input.id);
                 // Update things
                 return UserToUpdate;
             } catch (error) {
-                throw new Error (
+                throw new Error(
                     `Error when updating User:\n ${error}`
                 );
             }
 
         },
 
-        RemoveUser: async (_: {}, args: {id: number}): Promise<User> => {
+        RemoveUser: async (_: {}, { input }: RemoveUserInput): Promise<User> => {
 
             let UserRepo = await getRepository(User);
-            let UserToRemove = await UserRepo.findOne(args.id);
+            let UserToRemove = await UserRepo.findOne(input.id);
             await UserRepo.remove(UserToRemove);
 
             return UserToRemove;
         },
 
-        CatchDigimon: async(_: {}, args: {userId: number, digimonId: number}): Promise<Digimon> => {
+        CatchDigimon: async (_: {}, { input }: CatchDigimonInput): Promise<Digimon> => {
 
             let DigiRepo = await getRepository(Digimon);
             let UserRepo = await getRepository(User);
-            let DigiToCatch = await DigiRepo.findOne(args.digimonId);
-            DigiToCatch.owner = await UserRepo.findOne(args.userId);
+            let DigiToCatch = await DigiRepo.findOne(input.digimonId);
+            DigiToCatch.owner = await UserRepo.findOne(input.userId);
 
             return DigiToCatch;
         }
@@ -183,7 +291,7 @@ export class App {
     public server: ApolloServer;
     public app: any;
 
-    constructor(){
+    constructor() {
         this.server = new ApolloServer({
             typeDefs,
             resolvers
