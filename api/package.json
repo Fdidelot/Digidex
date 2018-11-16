@@ -12,6 +12,7 @@
       "body-parser": "^1.18.3",
       "express": "^4.16.4",
       "graphql": "^14.0.2",
+      "merge-graphql-schemas": "^1.5.7",
       "mysql": "^2.14.1",
       "pg": "^7.6.1",
       "reflect-metadata": "^0.1.10",
