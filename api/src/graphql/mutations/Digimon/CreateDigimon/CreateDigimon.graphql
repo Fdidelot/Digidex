@@ -1,0 +1,8 @@
+type Mutation {
+        CreateDigimon(input: CreateDigimonInput!): Digimon!
+}
+
+input CreateDigimonInput {
+        name: String!
+        type: String!
+}

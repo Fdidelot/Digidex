@@ -10,8 +10,11 @@ import bodyParser = require('body-parser');
 
 
 
-const typesArray = fileLoader(path.join(__dirname, "./**/*.graphql"));
-const resolversArray = fileLoader(path.join(__dirname, "./**/*.resolvers.*"));
+const typesArray = fileLoader(path.join(__dirname, "/graphql/**/*.graphql"));
+const resolversArray = fileLoader(path.join(__dirname, "/graphql/**/*.resolvers.*"));
+
+//console.log(typesArray)
+//console.log(resolversArray)
 
 export const typeDefs = mergeTypes(typesArray);
 export const resolvers = mergeResolvers(resolversArray);

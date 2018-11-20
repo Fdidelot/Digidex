@@ -1,0 +1,10 @@
+type Mutation {
+        UpdateDigimon(input: UpdateDigimonInput!): Digimon!
+}
+
+input UpdateDigimonInput {
+        id: Int!
+        name: String
+        type: DigiType
+        ownerid: Int
+}

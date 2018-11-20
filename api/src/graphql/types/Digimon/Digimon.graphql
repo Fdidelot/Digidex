@@ -3,17 +3,11 @@ type Query {
         GetDigimons(id: Int!): [Digimon!]!
 }
 
-type Mutation {
-        CreateDigimon(input: CreateDigimonInput!): Digimon!
-        UpdateDigimon(input: UpdateDigimonInput!): Digimon!
-        RemoveDigimon(input: RemoveDigimonInput!): Digimon!
-}
-
 enum DigiType {
         VIRUS
         ANTIVIRUS
         DONNEES
-    }
+}
 
 type Digimon {
         id: Int!
@@ -22,18 +16,3 @@ type Digimon {
         owner: User
 }
 
-input CreateDigimonInput {
-        name: String!
-        type: String!
-}
-
-    input RemoveDigimonInput {
-        id: Int!
-}
-
-    input UpdateDigimonInput {
-        id: Int!
-        name: String
-        type: DigiType
-        ownerid: Int
-}

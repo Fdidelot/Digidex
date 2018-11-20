@@ -1,10 +1,10 @@
 import { Digimon } from "../../../entity/Digimon";
-import { getRepository } from "typeorm";
+import { getRepository, getConnection } from "typeorm";
 import { User } from "../../../entity/User";
 
 export default {
     Query: {
-        DigimonInfo: async (id: number): Promise<Digimon> => {
+        DigimonInfo: async (_: null, id: number): Promise<Digimon> => {
 
             try {
                 let digirepo = await getRepository(Digimon);
@@ -24,6 +24,16 @@ export default {
                 return [];
             }
             return user.digimons;
+        }
+    },
+
+    Digimon: {
+        owner: async (_: Digimon): Promise<User> => {
+            return await getConnection()
+                .createQueryBuilder()
+                .relation(Digimon, 'owner')
+                .of(_)
+                .loadOne()
         }
     }
 }

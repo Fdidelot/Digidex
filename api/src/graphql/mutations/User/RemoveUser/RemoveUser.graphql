@@ -1,0 +1,7 @@
+type Mutation {
+        RemoveUser(input: RemoveUserInput!): User!
+}
+
+input RemoveUserInput {
+        id: Int!
+}

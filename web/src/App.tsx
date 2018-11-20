@@ -1,12 +1,33 @@
 import * as React from 'react';
 import './App.css';
+import ApolloClient, { gql } from "apollo-boost";
+import { ApolloProvider, Mutation, MutationFn } from "react-apollo";
+import { CatchDigimon } from './pages/CatchDigimon/CatchDigimon';
 
-import logo from './logo.svg';
+
+const client = new ApolloClient({
+  uri: "http://localhost:3001/graphql"
+});
 
 interface IState {
   name: string;
   type: string;
+  digimon?: {
+    id: number;
+    name: string;
+    type: string;
+  }
 }
+
+const DIGIMON_CREATE = gql`
+mutation ($input: CreateDigimonInput!) {
+  CreateDigimon(input: $input) {
+    id
+    name
+    type
+  }
+}
+`
 
 // tslint:disable
 
@@ -16,12 +37,12 @@ class App extends React.PureComponent<{}, IState> {
 
     this.state = {
       name: "",
-      type: ""
+      type: "",
     }
 
     this.UpdateName = this.UpdateName.bind(this);
     this.UpdateType = this.UpdateType.bind(this);
-    this.create = this.create.bind(this);
+    this.createDigimon = this.createDigimon.bind(this);
   }
 
   public UpdateName(event: any) {
@@ -32,50 +53,55 @@ class App extends React.PureComponent<{}, IState> {
     this.setState({ type: event.target.value });
   }
 
-  public async create() {
+  public async createDigimon(mutation: MutationFn<{ id: number, name: string, type: string }, { input: { name: string, type: string } }>) {
     const { name, type } = this.state;
 
-    console.log("YO")
-    const data = await fetch('http://localhost:3001/graphql', {
-      method: "POST",
-      body: `
-      mutation {
-        addDigimon(input: {
-          name: ${name},
-          type: ${type}
-        }) {
-          id
-          name
+    const res = await mutation({
+      variables: {
+        input: {
+          name,
           type
         }
       }
-      `,
-    })
-    const res = await data.json();
-    console.log(res);
+    });
 
-    return res;
+    // @ts-ignore
+    const test = res.data.CreateDigimon;
+
+    this.setState({
+      // @ts-ignore
+      digimon: {
+        ...test
+      }
+    })
   }
 
+
+  // POUR DU MULTI FILE REACT ROUTEUR ET REACT COMPONENTS
   public render() {
-    const { name, type } = this.state;
+    const { name, type, digimon } = this.state;
 
     // tslint:disable
     console.log(name, type);
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Salut Quentin</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <input placeholder="exemple : Agumon" onChange={(event) => this.UpdateName(event)} />
-        <input placeholder="exemple : Virus" onChange={(event) => this.UpdateType(event)} />
-        <br />
-        <button type="submit" onClick={() => this.create()}>Valider</button>
-      </div>
+      <ApolloProvider client={client}>
+        <div>
+          <h2>My first Apollo app 🚀</h2>
+          <Mutation mutation={DIGIMON_CREATE}>
+            {(mutateFn) => {
+              return (
+                <div>
+                  <input placeholder="type" onChange={(event) => this.UpdateType(event)} />
+                  <input placeholder="name" onChange={(event) => this.UpdateName(event)} />
+                  <button className="Button1" onClick={() => this.createDigimon(mutateFn)} />
+                </div>
+              )
+            }}
+          </Mutation>
+          <div>LE DIGIMON : {JSON.stringify(digimon)}</div>
+          <CatchDigimon />
+        </div>
+      </ApolloProvider>
     );
   }
 }

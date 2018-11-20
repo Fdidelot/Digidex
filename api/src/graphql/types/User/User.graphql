@@ -1,13 +1,5 @@
 type Query {
-        UserInfo(id: Int!): Digimon!
-}
-
-type Mutation {
-        CreateUser(input: CreateUserInput!): User!
-        UpdateUser(input: UpdateUserInput!): User!
-        RemoveUser(input: RemoveUserInput!): User!
-
-        CatchDigimon(input: CatchDigimonInput): Digimon!
+        UserInfo(id: Int!): User!
 }
 
 type User {
@@ -16,26 +8,4 @@ type User {
         lastName: String!
         age: Int!
         digimons: [Digimon!]!
-}
-
-input CatchDigimonInput {
-        userId: Int!
-        digimonId: Int!
-}
-
-    input CreateUserInput {
-        firstName: String!
-        lastName: String!
-        age: Int!
-}
-
-    input RemoveUserInput {
-        id: Int!
-}
-
-    input UpdateUserInput {
-        id: Int!
-        firstName: String
-        lastName: String
-        age: Int
 }

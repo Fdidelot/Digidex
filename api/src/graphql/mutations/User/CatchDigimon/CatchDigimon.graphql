@@ -1,0 +1,8 @@
+type Mutation {
+    CatchDigimon(input: CatchDigimonInput): Digimon!
+}
+
+input CatchDigimonInput {
+    userId: Int!
+    digimonId: Int!
+}

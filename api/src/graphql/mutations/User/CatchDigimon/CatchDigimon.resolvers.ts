@@ -18,6 +18,7 @@ export default {
             let UserRepo = await getRepository(User);
             let DigiToCatch = await DigiRepo.findOne(input.digimonId);
             DigiToCatch.owner = await UserRepo.findOne(input.userId);
+            await DigiRepo.save(DigiToCatch);
 
             return DigiToCatch;
         }

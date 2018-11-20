@@ -1,0 +1,8 @@
+type Mutation {
+        RemoveDigimon(input: RemoveDigimonInput!): Digimon!
+}
+
+
+input RemoveDigimonInput {
+        id: Int!
+}
